@@ -1,0 +1,61 @@
+dataset_name: thumos
+train_split: [ 'validation' ]
+val_split: [ 'test' ]
+dataset: {
+#  json_file: /data/stars/user/areka/tridetplus_1/data/mpiigi_multithumos_13.json,
+#  feat_folder: /data/stars/user/areka/features_croped,
+
+  json_file: /data/stars/user/areka/files_features_swin/mm52/mma_52_true.json,
+  feat_folder: /data/stars/user/areka/files_features_swin/mm52/train,
+  file_prefix: ~,
+  file_ext: .npy,
+  num_classes: 13,
+  input_dim: 768,
+  feat_stride: 2,
+  num_frames: 4,
+  # serve as data augmentation
+  trunc_thresh: 0.5,
+  crop_ratio: [ 0.9, 1.0 ],
+  max_seq_len: 2304,
+}
+model: {
+  fpn_type: identity,
+  max_buffer_len_factor: 6.0,
+  backbone_arch: [ 1, 1, 5 ],
+  n_sgp_win_size: 1,
+  regression_range: [ [ 0, 2 ], [ 2, 4 ], [4, 12], [ 12, 32 ], [ 32, 64 ], [ 64, 1500 ]],
+  num_bins: 16,
+  k: 1.5,
+  iou_weight_power: 0.3,
+  use_trident_head: True,
+  sgp_mlp_dim: 768,
+  input_noise: 0.0005
+}
+
+opt: {
+  learning_rate: 0.01,
+  warmup_epochs: 10,
+  epochs: 20,
+  weight_decay: 0.025,
+}
+loader: {
+  batch_size: 40,
+}
+train_cfg: {
+  init_loss_norm: 100,
+  clip_grad_l2norm: 1.0,
+  cls_prior_prob: 0.01,
+  center_sample: radius,
+  center_sample_radius: 1.5,
+}
+# the inference on THUMOS is quite different from EPIC-kitchens
+# a major performance gain is achieved by fusing external classification scores
+# doing so will require disable multiclass_nms and enable score fusion
+test_cfg: {
+  voting_thresh: 0.7,
+  pre_nms_topk: 2000,
+  max_seg_num: 2000,
+  min_score: 0.001,
+  multiclass_nms: True,
+}
+output_folder: ./ckpt_mpiigi_mardi/
